@@ -1,0 +1,57 @@
+version: "3.2"
+services:
+  db:
+    restart: on-failure
+    image: mysql:5.7
+    container_name: db
+    volumes:
+      - dbdata:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=data_study
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=P@ssw0rd
+      - MYSQL_ROOT_PASSWORD=P@ssw0rd
+    ports:
+      - "3302:3306"
+    networks:
+      - db-net
+
+  project:
+    restart: on-failure
+    container_name: code
+    command : bash -c "python check_db.py --service-name db --ip db --port 3306 && 
+                      python manage.py migrate &&
+                      python manage.py runserver 0.0.0.0:8000"
+    env_file:
+      - .env
+    build:
+      context: ${contextdir}
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - db-net
+
+  frontend:
+    restart: on-failure
+    command : npm start
+    container_name: front
+    build:
+      context: ./jumia-front/
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    depends_on:
+      - project
+    networks:
+      - db-net
+
+networks:
+  db-net:
+    driver: bridge
+ 
+volumes:
+  dbdata:

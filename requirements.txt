@@ -1,0 +1,7 @@
+Django
+django-cors-headers
+djangorestframework
+flake8-django
+mysqlclient
+python-decouple
+autopep8
